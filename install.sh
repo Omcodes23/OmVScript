@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
 set -euo pipefail
-# OmScript: bootstrap installer
+# OmVScript: bootstrap installer for Omcodes23/OmVScript
 # Usage:
-#  curl -fsSL https://raw.githubusercontent.com/Omcodes23/OmScript/main/install.sh -o /tmp/omscript-install.sh
-#  sudo bash /tmp/omscript-install.sh
+#  curl -fsSL https://raw.githubusercontent.com/Omcodes23/OmVScript/main/install.sh -o /tmp/omvscript-install.sh
+#  sudo bash /tmp/omvscript-install.sh
 
-REPO_RAW_BASE="https://raw.githubusercontent.com/Omcodes23/OmScript/main"
-LOGFILE="/var/log/omscript.log"
-TMPDIR="$(mktemp -d /tmp/omscript.XXXX)"
+REPO_RAW_BASE="https://raw.githubusercontent.com/Omcodes23/OmVScript/main"
+LOGFILE="/var/log/omvscript.log"
+TMPDIR="$(mktemp -d /tmp/omvscript.XXXX)"
 
 log() { echo "$(date --iso-8601=seconds) $*" | tee -a "$LOGFILE"; }
 ensure_root() {
@@ -17,20 +17,13 @@ ensure_root() {
   fi
 }
 
-detect_pkg_manager() {
-  if command -v apt-get >/dev/null 2>&1; then echo "apt"; return; fi
-  if command -v dnf >/dev/null 2>&1; then echo "dnf"; return; fi
-  if command -v pacman >/dev/null 2>&1; then echo "pacman"; return; fi
-  echo "unknown"
-}
-
 fetch_module() {
   local path="$1"
   local url="${REPO_RAW_BASE}/${path}"
   local out="${TMPDIR}/$(basename "$path")"
   log "Downloading module: $url"
   if ! curl -fsSL "$url" -o "$out"; then
-    log "ERROR: failed download $url"
+    log "ERROR: failed to download $url"
     return 1
   fi
   chmod +x "$out"
@@ -45,31 +38,23 @@ run_module() {
   return ${PIPESTATUS[0]:-0}
 }
 
-choose_with_whiptail() {
-  if command -v whiptail >/dev/null 2>&1; then
-    whiptail "$@"
-    return $?
-  fi
-  return 1
-}
-
 ensure_root
 
 # Interactive menu
 if command -v whiptail >/dev/null 2>&1; then
-  choice=$(whiptail --title "OmScript" --menu "Choose action" 20 80 10 \
-    "1" "Ensure Docker is installed (recommended)" \
+  choice=$(whiptail --title "OmVScript" --menu "Choose action" 20 80 10 \
+    "1" "Ensure Docker is installed (recommended first)" \
     "2" "Install Developer Environment (VS Code, Python, nvm, JDK)" \
-    "3" "Install Server Role (CasaOS, Cosmos - choose next)" \
-    "4" "Install NAS (OpenMediaVault)" \
+    "3" "Install Server Role (CasaOS / Cosmos)" \
+    "4" "Install NAS (OpenMediaVault - stub)" \
     "5" "Exit" 3>&1 1>&2 2>&3) || exit 0
 else
-  echo "OmScript - choose one:"
-  echo "1) Ensure Docker"
-  echo "2) Developer Environment"
-  echo "3) Server Role"
-  echo "4) NAS"
-  echo "5) Exit"
+  echo "OmVScript - choose one:"
+  echo " 1) Ensure Docker"
+  echo " 2) Developer Environment"
+  echo " 3) Server Role (CasaOS / Cosmos)"
+  echo " 4) NAS (OpenMediaVault - stub)"
+  echo " 5) Exit"
   read -rp "Enter choice: " choice
 fi
 
@@ -83,13 +68,14 @@ case "$choice" in
     run_module "$m"
     ;;
   3)
+    # server submenu
     if command -v whiptail >/dev/null 2>&1; then
-      srv=$(whiptail --title "Server options" --menu "Choose server to install/convert to" 18 80 8 \
+      srv=$(whiptail --title "Server options" --menu "Select server stack" 18 80 8 \
         "casaos" "CasaOS (home server GUI over Docker)" \
         "cosmos" "Cosmos (custom server flow)" \
         "cancel" "Cancel" 3>&1 1>&2 2>&3) || exit 0
     else
-      echo "Options: casaos cosmos"
+      echo "Server options: casaos / cosmos / cancel"
       read -rp "Which: " srv
     fi
 
@@ -103,7 +89,7 @@ case "$choice" in
         run_module "$m"
         ;;
       *)
-        log "Server choice cancelled"
+        log "Server selection cancelled."
         ;;
     esac
     ;;
@@ -112,13 +98,13 @@ case "$choice" in
     run_module "$m"
     ;;
   5)
-    log "Exit chosen"
+    log "Exit chosen."
     ;;
   *)
-    log "Unknown choice"
+    log "Unknown choice: $choice"
     ;;
 esac
 
 rm -rf "$TMPDIR"
-log "OmScript finished."
+log "OmVScript completed."
 exit 0
