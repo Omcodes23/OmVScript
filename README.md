@@ -1,17 +1,24 @@
-# OmScript
+# OmVScript
 
-OmScript is a modular, script-first system provisioning toolkit created by **Om Vataliya**  
-for converting an existing Linux OS into roles (Developer, Server, NAS, etc.).
+**OmVScript** is a modular, script-first provisioning toolkit by **Om Vataliya (Omcodes23)**.  
+It lets you convert an existing Linux system into different roles:
 
-Future Phase → **OmOS** (a full Linux-based distribution built from OmScript modules)
+- Server (CasaOS, custom server stacks)
+- NAS (OpenMediaVault – future)
+- Developer environment (VS Code, Python, Node, JDK, etc.)
+
+Future phase → **OmVOS** (a full Linux-based OS built using these scripts).
 
 ---
 
 ## 🚀 Quickstart
 
-Inspect before running:
+> ⚠️ Always inspect scripts before running them.
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/Omcodes23/OmScript/main/install.sh -o /tmp/omscript-install.sh
-less /tmp/omscript-install.sh
-sudo bash /tmp/omscript-install.sh
+# Download + inspect
+curl -fsSL https://raw.githubusercontent.com/Omcodes23/OmVScript/main/install.sh -o /tmp/omvscript-install.sh
+less /tmp/omvscript-install.sh
+
+# Run (after inspection)
+sudo bash /tmp/omvscript-install.sh
