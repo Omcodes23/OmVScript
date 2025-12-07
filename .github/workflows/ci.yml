@@ -1,0 +1,36 @@
+name: CI
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+  release:
+    types: [created]
+
+jobs:
+  shellcheck:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install shellcheck
+        run: sudo apt-get update && sudo apt-get install -y shellcheck
+      - name: Run shellcheck
+        run: |
+          find . -name '*.sh' -not -path "./.git/*" -print0 | xargs -0 -n1 shellcheck -x
+
+  sha-artifact:
+    needs: shellcheck
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/')
+    steps:
+      - uses: actions/checkout@v4
+      - name: Generate sha256sums
+        run: |
+          mkdir -p out
+          ./scripts/generate-sha256sums.sh > out/sha256sums.txt
+      - name: Upload sha256 artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: sha256sums
+          path: out/sha256sums.txt
